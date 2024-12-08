@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "462191290750",
+    "project_id": "library-cool-projecy",
+    "storage_bucket": "library-cool-projecy.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:462191290750:android:86cf191d229593146cab2f",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_3"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFBKICLroSiTAmvtn6ychse2AZRoiwHz0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

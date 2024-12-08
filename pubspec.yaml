@@ -1,0 +1,106 @@
+name: bukuhub
+description: "BukuHub Library App Project."
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  intl: ^0.17.0
+  font_awesome_flutter: ^10.1.0
+  cupertino_icons: ^1.0.6
+  carousel_slider: ^5.0.0
+  animated_text_kit: ^4.2.1
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
+  firebase_storage: ^12.3.4
+  image_picker: ^1.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Oswald
+      fonts:
+        - asset: assets/fonts/Oswald-Bold.ttf
+    - family: QwitcherGrypen
+      fonts:
+        - asset: assets/fonts/QwitcherGrypen-Bold.ttf
+    - family: Pacifico
+      fonts:
+        - asset: assets/fonts/Pacifico-Regular.ttf
+# Suggested code may be subject to a license. Learn more: ~LicenseLog:3285063866.
+    - family: Anton
+      fonts:
+        - asset: assets/fonts/Anton-Regular.ttf
+    - family : SpicyRice
+      fonts:
+        - asset: assets/fonts/SpicyRice-Regular.ttf
+    - family: Allan
+      fonts:
+        - asset: assets/fonts/Allan-Regular.ttf
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Allan-Bold.ttf
+    
+    
+    
+  
+  assets:
+    - assets/images/logo.jpg
+    - assets/images/books.png
+    - assets/images/digital-library.png
+    - assets/images/hujan.jpg
+    - assets/images/tere_liye.jpg
+    - assets/images/ilmu_pengetahuan_sosial.jpg
+    - assets/images/user.png
+    - assets/images/book4.jpg
+    - assets/images/book5.jpg
+    - assets/images/book6.jpg
+    - assets/images/category1.png
+    - assets/images/category2.png
+    - assets/images/category3.png
+    - assets/images/category4.png
+    - assets/images/category5.png
+    - assets/images/profile.png
+    - assets/images/bukuhub.png
+    - assets/images/startscreen.png
+    - assets/images/login.png
+    - assets/images/signup_logo.png
+    - assets/images/icon/science.png
+    - assets/images/icon/art.png
+    - assets/images/icon/history.png
+    - assets/images/icon/languages.png
+    - assets/images/icon/comic.png
+    - assets/images/icon/fiction.png
+    - assets/images/icon/non_fiction.png
+    - assets/images/icon/religion.png
+    - assets/images/icon/magazine.png
+    - assets/images/carousel/carousel1.png
+    - assets/images/carousel/carousel2.png
+    - assets/images/carousel/carousel3.png
+    - assets/images/carousel/1.png
+    - assets/images/carousel/2.png
+    - assets/images/carousel/3.png
+    - assets/images/gif/read.gif
+    - assets/images/gif/splash.gif
+    - assets/images/gif/bukuhub.gif
+    - assets/images/books/1.jpg
+    - assets/images/books/2.jpg
+    - assets/images/books/3.jpg
+    - assets/images/books/4.png
+    - assets/images/books/5.jpg
+    - assets/images/books/6.jpg
+
+
+  
+
