@@ -1,7 +1,7 @@
-import 'dart:io'; // For using File
-
+import 'dart:io'; // Untuk menggunakan File (untuk image)
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart'; // Add this import for image picking
+import 'package:image_picker/image_picker.dart'; // Untuk memilih gambar
+import 'package:firebase_auth/firebase_auth.dart'; // Untuk mengakses Firebase Auth
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -13,8 +13,14 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
   File? _imageFile; // For storing the selected image file
+  bool _isLoading = false; // Variabel untuk mengontrol status loading
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
 
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
@@ -26,7 +32,40 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  void _handleUpdate() async {}
+  void _loadUserData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null && user.displayName != null) {
+      _nameController.text = user.displayName ?? '';
+    }
+  }
+
+  void _handleUpdate() async {
+    setState(() {
+      _isLoading = true; // Set loading true saat mulai update
+    });
+
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await user.updateDisplayName(_nameController.text); // Update nama
+        await user.reload(); // Reload user untuk mendapatkan data terbaru
+        user = FirebaseAuth.instance.currentUser; // Refresh user data
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Display Name updated')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false; // Set loading false setelah update selesai
+      });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -58,15 +97,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
               const SizedBox(height: 16),
 
-              _buildTextField("Display Name"),
-              // _buildTextField("Display Name"),
+              _buildTextField("Display Name", controller: _nameController),
               
               const SizedBox(height: 20),
 
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _handleUpdate, // Disable button while loading
+                  onPressed: _isLoading
+                    ? null // Nonaktifkan tombol saat loading
+                    : () {
+                        if (_formKey.currentState!.validate()) {
+                          _handleUpdate(); // Menangani update saat tombol diklik
+                        }
+                      }, // Disable button while loading
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     padding: const EdgeInsets.symmetric(vertical: 15),
@@ -74,48 +118,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: false
-                      ? const CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.orange), // Loading spinner color
-                        )
-                      : const Text(
-                          'Save',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                          ),
+                  child: _isLoading
+                    ? const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+                      )
+                    : const Text(
+                        'Save',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
                         ),
+                      ),
                 ),
               ),
 
-              // Name Field
-              // TextFormField(
-              //   controller: _nameController,
-              //   decoration: const InputDecoration(labelText: 'Name'),
-              //   validator: (value) {
-              //     if (value == null || value.isEmpty) {
-              //       return 'Please enter your name';
-              //     }
-              //     return null;
-              //   },
-              // ),
-              // const SizedBox(height: 16),
-
-              // Email Field
-              // TextFormField(
-              //   controller: _emailController,
-              //   decoration: const InputDecoration(labelText: 'Email'),
-              //   validator: (value) {
-              //     if (value == null || value.isEmpty) {
-              //       return 'Please enter your email';
-              //     }
-              //     if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-              //       return 'Please enter a valid email';
-              //     }
-              //     return null;
-              //   },
-              // ),
               const SizedBox(height: 16),
             ],
           ),
@@ -125,8 +141,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Widget _buildTextField(String hintText,
-      {bool isPassword = false, onChanged}) {
+      {bool isPassword = false, onChanged, required TextEditingController controller}) {
     return TextField(
+      controller: controller, // Pasangkan controller ke TextField
       obscureText: isPassword,
       decoration: InputDecoration(
         hintText: hintText,

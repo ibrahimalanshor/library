@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "462191290750",
-    "project_id": "library-cool-projecy",
-    "storage_bucket": "library-cool-projecy.appspot.com"
+    "project_number": "387514189783",
+    "project_id": "ddlib-87f45",
+    "storage_bucket": "ddlib-87f45.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:462191290750:android:86cf191d229593146cab2f",
+        "mobilesdk_app_id": "1:387514189783:android:9a54ed853c6c7827b32d92",
         "android_client_info": {
-          "package_name": "com.example.flutter_application_3"
+          "package_name": "com.example.app"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBFBKICLroSiTAmvtn6ychse2AZRoiwHz0"
+          "current_key": "AIzaSyBQuDqH1gNw0s9Jir-0ohzVhhbZVcDcmjU"
         }
       ],
       "services": {
