@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'tambah_screen.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -76,8 +77,10 @@ class HomePage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Belum ada aksi untuk tombol ini, tetapi bisa ditambahkan nanti
-          print('Add new book button pressed');
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddBookPage()),
+          );
         },
         child: const Icon(Icons.add),
         tooltip: 'Add Book',
