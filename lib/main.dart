@@ -9,6 +9,7 @@ import 'firebase_options.dart';
 import 'profile/profile_screen.dart';
 import 'search/search_screen.dart';
 import 'splash/splash_screen.dart';
+import 'admin/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,7 +57,8 @@ class _MyAppState extends State<MyApp> {
               isDarkMode: _themeMode == ThemeMode.dark,
             ),
         '/search': (context) => const SearchScreen(),
-        '/edit_profile': (context) => const EditProfilePage()
+        '/edit_profile': (context) => const EditProfilePage(),
+        '/admin': (context) => const HomePage()
       },
     );
   }
