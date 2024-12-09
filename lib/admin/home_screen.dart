@@ -5,6 +5,42 @@ import 'tambah_screen.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  Future<void> _deleteBook(BuildContext context, String bookId) async {
+    try {
+      await FirebaseFirestore.instance.collection('books').doc(bookId).delete();
+      print('Book deleted successfully!');
+    } catch (e) {
+      print('Error deleting book: $e');
+    }
+  }
+
+  Future<void> _showDeleteConfirmation(BuildContext context, String bookId) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this book?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Menutup dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _deleteBook(context, bookId); // Hapus buku
+                Navigator.of(context).pop(); // Menutup dialog setelah dihapus
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,6 +68,7 @@ class HomePage extends StatelessWidget {
             itemCount: books.length,
             itemBuilder: (context, index) {
               final book = books[index].data() as Map<String, dynamic>;
+              final bookId = books[index].id; // Mendapatkan ID buku
               final title = book['title'] ?? 'Untitled';
               final author = book['author'] ?? 'Unknown Author';
               final coverImage = book['coverImage'] ??
@@ -63,8 +100,7 @@ class HomePage extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.delete),
                         onPressed: () {
-                          // Aksi hapus, bisa ditambahkan nanti
-                          print('Delete button pressed for $title');
+                          _showDeleteConfirmation(context, bookId);
                         },
                       ),
                     ],
