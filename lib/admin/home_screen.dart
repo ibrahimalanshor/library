@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'tambah_screen.dart';
+import 'edit_screen.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -93,8 +94,17 @@ class HomePage extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.edit),
                         onPressed: () {
-                          // Aksi edit, bisa ditambahkan nanti
-                          print('Edit button pressed for $title');
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditBookPage(
+                                bookId: bookId, // Kirim ID buku
+                                initialTitle: title, // Kirim data judul
+                                initialAuthor: author, // Kirim data penulis
+                                initialCoverImage: coverImage, // Kirim URL cover image
+                              ),
+                            ),
+                          );
                         },
                       ),
                       IconButton(
