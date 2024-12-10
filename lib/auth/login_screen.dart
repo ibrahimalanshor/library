@@ -135,14 +135,25 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      // print(email);
-      // print(password);
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      Navigator.of(context).pushNamed(true ? '/admin' : '/dashboard');
+      User? user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        // Refresh token dan ambil custom claims
+        final idTokenResult = await user.getIdTokenResult(true);
+        final isAdmin = idTokenResult.claims?['admin'] ?? false; // Ambil klaim 'admin'
+
+        // Redirect berdasarkan klaim
+        if (isAdmin) {
+          Navigator.of(context).pushNamed('/admin');
+        } else {
+          Navigator.of(context).pushNamed('/dashboard');
+        }
+      }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         showErrorDialog(context, 'No user found for that email.');
