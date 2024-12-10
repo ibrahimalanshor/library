@@ -82,72 +82,95 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildHeader() {
     final FirebaseAuth auth = FirebaseAuth.instance;
-    final User? user = auth.currentUser;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16.0),
-      decoration: const BoxDecoration(
-        color: Colors.blue,
-      ),
-      child: Column(
-        children: [
-          Stack(
-            alignment: Alignment.center,
+    return StreamBuilder<User?>(
+      stream: auth.idTokenChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const Center(
+            child: Text(
+              'User not logged in',
+              style: TextStyle(fontSize: 18, color: Colors.grey),
+            ),
+          );
+        }
+
+        final User user = snapshot.data!;
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16.0),
+          decoration: const BoxDecoration(
+            color: Colors.blue,
+          ),
+          child: Column(
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 3),
-                ),
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundImage: user != null && user.photoURL != null
-                      ? NetworkImage(user.photoURL!)
-                      : const AssetImage('assets/images/profile.png'),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 3),
+                    ),
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundImage: user.photoURL != null
+                          ? NetworkImage(user.photoURL!)
+                          : const AssetImage('assets/images/profile.png')
+                              as ImageProvider,
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const EditProfilePage(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.edit,
+                            color: Colors.blue, size: 20),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                user.displayName ?? 'Guest',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const EditProfilePage()));
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.edit, color: Colors.blue, size: 20),
-                  ),
+              const SizedBox(height: 4),
+              Text(
+                user.email ?? 'Guest',
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.white70,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            user?.displayName ?? 'Guest',
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            user?.email ?? 'Guest',
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.white70,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
