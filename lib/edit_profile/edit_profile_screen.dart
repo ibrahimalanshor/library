@@ -2,6 +2,7 @@ import 'dart:io'; // Untuk menggunakan File (untuk image)
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart'; // Untuk memilih gambar
 import 'package:firebase_auth/firebase_auth.dart'; // Untuk mengakses Firebase Auth
+import 'dart:typed_data'; // Untuk mengkonversi gambar ke bytes
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -15,6 +16,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _nameController = TextEditingController();
   File? _imageFile; // For storing the selected image file
   bool _isLoading = false; // Variabel untuk mengontrol status loading
+  Uint8List? _imageBytes; // Untuk menyimpan bytes gambar
 
   @override
   void initState() {
@@ -25,9 +27,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+
     if (image != null) {
       setState(() {
         _imageFile = File(image.path); // Update the image file state
+      });
+
+      final bytes = await image.readAsBytes(); // Membaca gambar menjadi bytes
+      setState(() {
+        _imageBytes = bytes; // Update dengan bytes gambar
       });
     }
   }
@@ -86,12 +94,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   onTap: _pickImage,
                   child: CircleAvatar(
                     radius: 50,
-                    backgroundImage: _imageFile != null
-                        ? FileImage(_imageFile!)
-                        : const AssetImage('assets/images/profile.png')
-                            as ImageProvider,
+                    backgroundImage: _imageBytes != null
+                        ? MemoryImage(_imageBytes!)
+                        : const AssetImage('/images/placeholder/user.png') as ImageProvider,
                     child: const Icon(Icons.camera_alt,
-                        color: Colors.white), // Icon for picking image
+                    color: Colors.white), // Icon for picking image
                   ),
                 ),
               ),

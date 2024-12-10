@@ -121,7 +121,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       radius: 50,
                       backgroundImage: user.photoURL != null
                           ? NetworkImage(user.photoURL!)
-                          : const AssetImage('assets/images/profile.png')
+                          : const AssetImage('/images/placeholder/user.png')
                               as ImageProvider,
                     ),
                   ),
