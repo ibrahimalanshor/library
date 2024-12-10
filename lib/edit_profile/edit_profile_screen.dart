@@ -2,6 +2,7 @@ import 'dart:io'; // Untuk menggunakan File (untuk image)
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart'; // Untuk memilih gambar
 import 'package:firebase_auth/firebase_auth.dart'; // Untuk mengakses Firebase Auth
+import 'package:firebase_storage/firebase_storage.dart'; // Import Firebase Storage
 import 'dart:typed_data'; // Untuk mengkonversi gambar ke bytes
 
 class EditProfilePage extends StatefulWidget {
@@ -55,12 +56,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
     try {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
+        String? photoUrl = _imageBytes != null ? await _uploadImageToStorage() : user.photoURL;
+
         await user.updateDisplayName(_nameController.text); // Update nama
+        // Update photo URL jika ada image baru
+        if (photoUrl != null) {
+          await user.updatePhotoURL(photoUrl);
+        }
+
         await user.reload(); // Reload user untuk mendapatkan data terbaru
         user = FirebaseAuth.instance.currentUser; // Refresh user data
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Display Name updated')),
+          SnackBar(content: Text('Profile updated')),
         );
       }
     } catch (e) {
@@ -74,6 +82,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
+  // Fungsi untuk upload image ke Firebase Storage
+  Future<String?> _uploadImageToStorage() async {
+    try {
+      final storageRef = FirebaseStorage.instance.ref().child('user_pictures/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final uploadTask = storageRef.putData(_imageBytes!); // Meng-upload image bytes
+      final snapshot = await uploadTask.whenComplete(() {});
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload Image Error: $e')));
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
