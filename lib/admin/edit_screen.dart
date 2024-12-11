@@ -1,53 +1,104 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class EditBookPage extends StatefulWidget {
-  final String bookId;
-  final String initialTitle;
-  final String initialAuthor;
-  final String initialCoverImage;
+  final String idBuku;
+  final String judulAwal;
+  final String penulisAwal;
+  final String gambarSampulAwal;
+  final bool populerAwal;
+  final bool direkomendasikanAwal;
+  final int ratingAwal; // Add the rating
 
   const EditBookPage({
     super.key,
-    required this.bookId,
-    required this.initialTitle,
-    required this.initialAuthor,
-    required this.initialCoverImage,
+    required this.idBuku,
+    required this.judulAwal,
+    required this.penulisAwal,
+    required this.gambarSampulAwal,
+    required this.populerAwal,
+    required this.direkomendasikanAwal,
+    required this.ratingAwal, // Add the rating to constructor
   });
 
   @override
-  _EditBookPageState createState() => _EditBookPageState();
+  _HalamanEditBukuState createState() => _HalamanEditBukuState();
 }
 
-class _EditBookPageState extends State<EditBookPage> {
+
+class _HalamanEditBukuState extends State<EditBookPage> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _titleController;
-  late TextEditingController _authorController;
-  late TextEditingController _coverImageController;
+  late TextEditingController _judulController;
+  late TextEditingController _penulisController;
+  XFile? _gambarTerpilih;
+  bool _populer = false;
+  bool _direkomendasikan = false;
+  bool _sedangMengunggah = false;
+  int _rating = 3; // Default rating adalah 3
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.initialTitle);
-    _authorController = TextEditingController(text: widget.initialAuthor);
-    _coverImageController = TextEditingController(text: widget.initialCoverImage);
+    _judulController = TextEditingController(text: widget.judulAwal);
+    _penulisController = TextEditingController(text: widget.penulisAwal);
+    _populer = widget.populerAwal;
+    _direkomendasikan = widget.direkomendasikanAwal;
+    _rating = widget.ratingAwal; // Set the initial rating
   }
 
-  Future<void> _updateBook() async {
+  Future<void> _pilihGambar() async {
+    final picker = ImagePicker();
+    final gambar = await picker.pickImage(source: ImageSource.gallery);
+    if (gambar != null) {
+      setState(() {
+        _gambarTerpilih = gambar;
+      });
+    }
+  }
+
+  Future<String?> _unggahGambar(XFile gambar) async {
+    final storageRef = FirebaseStorage.instance.ref();
+    final fileRef = storageRef.child('buku/${DateTime.now().millisecondsSinceEpoch}.jpg');
+    await fileRef.putFile(File(gambar.path));
+    return await fileRef.getDownloadURL();
+  }
+
+  Future<void> _perbaruiBuku() async {
     if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        _sedangMengunggah = true;
+      });
+
       try {
-        await FirebaseFirestore.instance.collection('books').doc(widget.bookId).update({
-          'title': _titleController.text,
-          'author': _authorController.text,
-          'coverImage': _coverImageController.text,
+        String? urlSampul = widget.gambarSampulAwal;
+        if (_gambarTerpilih != null) {
+          urlSampul = await _unggahGambar(_gambarTerpilih!);
+        }
+
+        await FirebaseFirestore.instance.collection('buku').doc(widget.idBuku).update({
+          'title': _judulController.text,
+          'author': _penulisController.text,
+          'icon': urlSampul,
+          'popular': _populer,
+          'recomended': _direkomendasikan,
+          'rating': _rating, // Menambahkan rating
         });
 
-        // Menampilkan pesan berhasil
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Book updated successfully!')));
-        Navigator.pop(context); // Kembali ke halaman sebelumnya
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Buku berhasil diperbarui!')),
+        );
+        Navigator.pop(context);
       } catch (e) {
-        // Menampilkan pesan error jika gagal
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating book: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Terjadi kesalahan saat memperbarui buku: $e')),
+        );
+      } finally {
+        setState(() {
+          _sedangMengunggah = false;
+        });
       }
     }
   }
@@ -56,50 +107,117 @@ class _EditBookPageState extends State<EditBookPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Book'),
+        title: const Text('Edit Buku'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
-            children: <Widget>[
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a title';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _authorController,
-                decoration: const InputDecoration(labelText: 'Author'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an author';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _coverImageController,
-                decoration: const InputDecoration(labelText: 'Cover Image URL'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a cover image URL';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _updateBook,
-                child: const Text('Update Book'),
-              ),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: _judulController,
+                  decoration: const InputDecoration(labelText: 'Judul'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Harap masukkan judul';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _penulisController,
+                  decoration: const InputDecoration(labelText: 'Penulis'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Harap masukkan nama penulis';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _populer,
+                      onChanged: (value) {
+                        setState(() {
+                          _populer = value ?? false;
+                        });
+                      },
+                    ),
+                    const Text('Populer'),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _direkomendasikan,
+                      onChanged: (value) {
+                        setState(() {
+                          _direkomendasikan = value ?? false;
+                        });
+                      },
+                    ),
+                    const Text('Direkomendasikan'),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  initialValue: _rating.toString(),
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Rating (1-5)',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Harap masukkan rating';
+                    }
+                    final rating = int.tryParse(value);
+                    if (rating == null || rating < 1 || rating > 5) {
+                      return 'Rating harus antara 1 dan 5';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    setState(() {
+                      _rating = int.tryParse(value) ?? 3;
+                    });
+                  },
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: _pilihGambar,
+                  child: Container(
+                    height: 150,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                    ),
+                    child: _gambarTerpilih != null
+                        ? Image.file(
+                            File(_gambarTerpilih!.path),
+                            fit: BoxFit.cover,
+                          )
+                        : widget.gambarSampulAwal.isNotEmpty
+                            ? Image.network(
+                                widget.gambarSampulAwal,
+                                fit: BoxFit.cover,
+                              )
+                            : const Center(child: Text('Pilih Gambar Sampul')),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _sedangMengunggah
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: _perbaruiBuku,
+                        child: const Text('Simpan'),
+                      ),
+              ],
+            ),
           ),
         ),
       ),
