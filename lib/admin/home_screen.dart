@@ -8,10 +8,10 @@ class HomePage extends StatelessWidget {
 
   Future<void> _deleteBook(BuildContext context, String bookId) async {
     try {
-      await FirebaseFirestore.instance.collection('books').doc(bookId).delete();
-      print('Book deleted successfully!');
+      await FirebaseFirestore.instance.collection('buku').doc(bookId).delete();
+      print('Buku berhasil dihapus!');
     } catch (e) {
-      print('Error deleting book: $e');
+      print('Terjadi kesalahan saat menghapus buku: $e');
     }
   }
 
@@ -20,21 +20,21 @@ class HomePage extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm Deletion'),
-          content: const Text('Are you sure you want to delete this book?'),
+          title: const Text('Konfirmasi Penghapusan'),
+          content: const Text('Apakah Anda yakin ingin menghapus buku ini?'),
           actions: <Widget>[
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Menutup dialog
               },
-              child: const Text('Cancel'),
+              child: const Text('Batal'),
             ),
             TextButton(
               onPressed: () {
                 _deleteBook(context, bookId); // Hapus buku
                 Navigator.of(context).pop(); // Menutup dialog setelah dihapus
               },
-              child: const Text('Delete'),
+              child: const Text('Hapus'),
             ),
           ],
         );
@@ -47,20 +47,20 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false, // Menghapus tombol back
-        title: const Text('Books List'),
+        title: const Text('Daftar Buku'),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('books').snapshots(),
+        stream: FirebaseFirestore.instance.collection('buku').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
             print('Error: ${snapshot.error}');
-            return const Center(child: Text('Error loading data.'));
+            return const Center(child: Text('Terjadi kesalahan saat memuat data.'));
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No books found.'));
+            return const Center(child: Text('Tidak ada buku yang ditemukan.'));
           }
 
           final books = snapshot.data!.docs;
@@ -70,10 +70,13 @@ class HomePage extends StatelessWidget {
             itemBuilder: (context, index) {
               final book = books[index].data() as Map<String, dynamic>;
               final bookId = books[index].id; // Mendapatkan ID buku
-              final title = book['title'] ?? 'Untitled';
-              final author = book['author'] ?? 'Unknown Author';
-              final coverImage = book['coverImage'] ??
-                  'https://via.placeholder.com/150'; // Default placeholder image
+              final title = book['title'] ?? 'Tanpa Judul';
+              final author = book['author'] ?? 'Penulis Tidak Diketahui';
+              final coverImage = book['icon'] ??
+                  'https://placehold.co/150'; // Gambar placeholder default
+              final populer = book['popular'] ?? false;
+              final direkomendasikan = book['recomended'] ?? false;
+              final rating = book['rating'] ?? 0.0;
 
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -98,10 +101,13 @@ class HomePage extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) => EditBookPage(
-                                bookId: bookId, // Kirim ID buku
-                                initialTitle: title, // Kirim data judul
-                                initialAuthor: author, // Kirim data penulis
-                                initialCoverImage: coverImage, // Kirim URL cover image
+                                idBuku: bookId, // Kirim ID buku
+                                judulAwal: title, // Kirim data judul
+                                penulisAwal: author, // Kirim data penulis
+                                gambarSampulAwal: coverImage, // Kirim URL cover image
+                                populerAwal: populer, // Kirim status populer
+                                direkomendasikanAwal: direkomendasikan, // Kirim status direkomendasikan
+                                ratingAwal: rating, // Kirim rating buku
                               ),
                             ),
                           );
@@ -129,7 +135,7 @@ class HomePage extends StatelessWidget {
           );
         },
         child: const Icon(Icons.add),
-        tooltip: 'Add Book',
+        tooltip: 'Tambah Buku',
       ),
     );
   }
