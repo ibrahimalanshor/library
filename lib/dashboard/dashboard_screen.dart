@@ -126,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       List<Map<String, String>> loadedCategories = [];
 
       for (var doc in snapshot.docs) {
-        String iconFileName = doc['icon']; // Nama file icon di Firebase Storage
+        String? iconFileName = doc['icon']; // Nama file icon di Firebase Storage
         String iconUrl = await _getIconUrl(
             'kategori_buku', iconFileName); // Dapatkan URL download
 
@@ -159,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       List<Map<String, dynamic>> loadedBooks = [];
 
       for (var doc in snapshot.docs) {
-        String iconFileName = doc['icon']; // Nama file icon di Firebase Storage
+        String? iconFileName = doc['icon']; // Nama file icon di Firebase Storage
         String iconUrl =
             await _getIconUrl('buku', iconFileName); // Dapatkan URL download
 
@@ -217,8 +217,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  Future<String> _getIconUrl(String dir, String fileName) async {
+  Future<String> _getIconUrl(String dir, String? fileName) async {
     try {
+      // Jika fileName null atau kosong, return URL placeholder
+      if (fileName == null || fileName.isEmpty) {
+        return 'https://placehold.co/150';
+      }
+
       // Mendapatkan URL dari Firebase Storage berdasarkan nama file
       String downloadUrl = await FirebaseStorage.instance
           .ref()
