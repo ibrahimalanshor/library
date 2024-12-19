@@ -57,9 +57,7 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 20),
             _buildHeader(),
             const SizedBox(height: 30),
-            _buildGeneralSettings(),
-            const SizedBox(height: 20),
-            _buildInformation(),
+            _buildGeneralSettings()
           ],
         ),
       ),
@@ -199,22 +197,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 widget.toggleTheme(value);
               },
             ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.lock),
-            title: const Text('Change Password'),
-            onTap: () {
-              // Action to change password
-            },
-            trailing: const Icon(Icons.arrow_forward_ios),
-          ),
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: const Text('Language'),
-            onTap: () {
-              // Action to change language
-            },
-            trailing: const Icon(Icons.arrow_forward_ios),
           ),
         ],
       ),
