@@ -20,6 +20,7 @@ dependencies:
   cloud_firestore: ^5.4.4
   firebase_storage: ^12.3.4
   image_picker: ^1.1.2
+  syncfusion_flutter_pdfviewer: ^21.2.3
 
 dev_dependencies:
   flutter_test:
