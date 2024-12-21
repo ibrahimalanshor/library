@@ -552,34 +552,39 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildRecommendedItem(
       String title, String author, int rating, String imagePath) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: SingleChildScrollView(child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              imagePath,
-              fit: BoxFit.cover,
-              height: 180,
+    return GestureDetector(
+      onTap: () {
+        _showBottomSheet(context, title, author, rating);
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: SingleChildScrollView(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                imagePath,
+                fit: BoxFit.cover,
+                height: 180,
+                width: 120,
+              ),
+            ),
+            const SizedBox(height: 5),
+            SizedBox(
               width: 120,
+              child: Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-          const SizedBox(height: 5),
-          SizedBox(
-            width: 120,
-            child: Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          Text(author, maxLines: 1, overflow: TextOverflow.ellipsis),
-          Text('⭐ ${rating.toString()}'),
-        ],
-      ))
+            Text(author, maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text('⭐ ${rating.toString()}'),
+          ],
+        ))
+      )
     );
   }
 
@@ -611,6 +616,49 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
         BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
       ],
+    );
+  }
+
+  void _showBottomSheet(BuildContext context, String title, String author, int rating) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Pilih Opsi',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: Icon(Icons.book),
+                title: Text('Baca'),
+                onTap: () {
+                  Navigator.pop(context); // Tutup Bottom Sheet
+                  // Tambahkan logika untuk aksi Baca di sini
+                  print('Baca dipilih untuk $title');
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.calendar_today),
+                title: Text('Booking'),
+                onTap: () {
+                  Navigator.pop(context); // Tutup Bottom Sheet
+                  // Tambahkan logika untuk aksi Booking di sini
+                  print('Booking dipilih untuk $title');
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
