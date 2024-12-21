@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class ReadBookPage extends StatelessWidget {
   final String title;
@@ -12,12 +13,16 @@ class ReadBookPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(title),  // Judul sesuai dengan parameter title
       ),
-      body: Center(
-        child: Text(
-          'Konten buku $title oleh $author akan ditampilkan di sini.',
-          style: TextStyle(fontSize: 18),
-        ),
-      ),
+      body: SfPdfViewer.asset(
+        'books/test.pdf',
+        onDocumentLoadFailed: (details) {
+          print('Gagal memuat PDF:');
+          print(details);
+        },
+        onDocumentLoaded: (details) {
+          print('PDF berhasil dimuat: halaman');
+        },
+      )
     );
   }
 }
