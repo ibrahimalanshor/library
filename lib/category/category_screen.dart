@@ -143,8 +143,6 @@ class _BookCategoryPageState extends State<BookCategoryPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildSearchBar(isDarkMode),
-                      const SizedBox(height: 20),
                       _buildFilterButtons(isDarkMode),
                       const SizedBox(height: 20),
                       _buildCategoryGrid(isDarkMode),

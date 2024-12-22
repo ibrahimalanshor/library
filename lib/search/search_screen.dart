@@ -52,8 +52,6 @@ class _SearchScreenState extends State<SearchScreen> {
       padding: const EdgeInsets.all(16.0),
       child: Row(
         children: [
-          const Icon(Icons.grid_view, color: Colors.white),
-          const SizedBox(width: 16),
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -69,10 +67,6 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 16),
-          const CircleAvatar(
-            backgroundImage: AssetImage('assets/images/profile.png'),
           ),
         ],
       ),
