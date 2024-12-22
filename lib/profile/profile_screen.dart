@@ -57,7 +57,9 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 20),
             _buildHeader(),
             const SizedBox(height: 30),
-            _buildGeneralSettings()
+            _buildGeneralSettings(),
+            const SizedBox(height: 30),
+            _buildInformation()
           ],
         ),
       ),
@@ -218,38 +220,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           const SizedBox(height: 10),
-          ListTile(
-            leading: const Icon(Icons.info),
-            title: const Text('About App'),
-            onTap: () {
-              // Action to view about app
-            },
-            trailing: const Icon(Icons.arrow_forward_ios),
-          ),
-          ListTile(
-            leading: const Icon(Icons.description),
-            title: const Text('Terms & Conditions'),
-            onTap: () {
-              // Action to view terms and conditions
-            },
-            trailing: const Icon(Icons.arrow_forward_ios),
-          ),
-          ListTile(
-            leading: const Icon(Icons.privacy_tip),
-            title: const Text('Privacy Policy'),
-            onTap: () {
-              // Action to view privacy policy
-            },
-            trailing: const Icon(Icons.arrow_forward_ios),
-          ),
-          ListTile(
-            leading: const Icon(Icons.share),
-            title: const Text('Share This App'),
-            onTap: () {
-              // Action to share the app
-            },
-            trailing: const Icon(Icons.arrow_forward_ios),
-          ),
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Logout'),

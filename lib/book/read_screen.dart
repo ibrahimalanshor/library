@@ -9,12 +9,15 @@ class ReadBookPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String pdfFileName = 'books/${title.replaceAll(' ', '_').toLowerCase()}.pdf';
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text(title),  // Judul sesuai dengan parameter title
       ),
       body: SfPdfViewer.asset(
-        'books/test.pdf',
+        pdfFileName,
         onDocumentLoadFailed: (details) {
           print('Gagal memuat PDF:');
           print(details);

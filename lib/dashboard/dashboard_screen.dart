@@ -252,17 +252,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _movePopularBooks(Timer timer) {
-    _popularBooksController.nextPage(
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOut,
-    );
+    try {
+      _popularBooksController.nextPage(
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    } catch (e) {
+    }
   }
 
   void _moveRecommendedBooks(Timer timer) {
-    _recommendedBooksController.nextPage(
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOut,
-    );
+    try {
+      _recommendedBooksController.nextPage(
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    } catch (e) {
+    }
   }
 
   @override
