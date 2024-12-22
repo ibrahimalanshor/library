@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:bukuhub/book/read_screen.dart';
 import 'package:bukuhub/book/booking_screen.dart';
@@ -662,9 +663,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ListTile(
                 leading: Icon(Icons.calendar_today),
                 title: Text('Booking'),
-                onTap: () {
-                  Navigator.pop(context); // Tutup Bottom Sheet
-                  // Tambahkan logika untuk aksi Booking di sini
+                onTap: () async {
+                  final userId = FirebaseAuth.instance.currentUser?.uid; // Gunakan UID dari pengguna saat ini
+                  final bookingRef = FirebaseFirestore.instance.collection('booking');
+                  final querySnapshot = await bookingRef
+                      .where('userId', isEqualTo: userId)
+                      .where('title', isEqualTo: title)
+                      .get();
+
+                  // Jika belum ada, tambahkan data baru
+                  if (querySnapshot.docs.isEmpty) {
+                    // Insert data ke koleksi bookings
+                    await bookingRef.add({
+                      'title': title,
+                      'icon': '${title}.jpg',
+                      'userId': userId,
+                    });
+                  }
+
+                  Navigator.pop(context);
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
