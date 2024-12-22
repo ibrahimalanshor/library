@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:bukuhub/book/read_screen.dart';  // Ganti dengan path yang sesuai
+import 'package:bukuhub/book/read_screen.dart';
+import 'package:bukuhub/book/booking_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -664,7 +665,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 onTap: () {
                   Navigator.pop(context); // Tutup Bottom Sheet
                   // Tambahkan logika untuk aksi Booking di sini
-                  print('Booking dipilih untuk $title');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BookingPage(),
+                    ),
+                  );
                 },
               ),
             ],
