@@ -20,7 +20,7 @@ class ReadBookPage extends StatelessWidget {
         pdfFileName,
         onDocumentLoadFailed: (details) {
           print('Gagal memuat PDF:');
-          print(details.description);
+          print(details.error);
         },
         onDocumentLoaded: (details) {
           print('PDF berhasil dimuat: halaman');
