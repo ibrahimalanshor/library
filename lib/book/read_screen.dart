@@ -16,16 +16,7 @@ class ReadBookPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(title),  // Judul sesuai dengan parameter title
       ),
-      body: SfPdfViewer.asset(
-        pdfFileName,
-        onDocumentLoadFailed: (details) {
-          print('Gagal memuat PDF:');
-          print(details.error);
-        },
-        onDocumentLoaded: (details) {
-          print('PDF berhasil dimuat: halaman');
-        },
-      )
+      body: SfPdfViewer.network('https://cdn.syncfusion.com/content/PDFViewer/flutter-succinctly.pdf')
     );
   }
 }
