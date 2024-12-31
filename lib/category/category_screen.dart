@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class BookCategoryPage extends StatefulWidget {
   const BookCategoryPage({super.key});
@@ -31,99 +33,6 @@ class _BookCategoryPageState extends State<BookCategoryPage> {
         Navigator.pushNamed(context, '/profile');
         break;
     }
-  }
-
-  void _showFilterModal(BuildContext context, bool isDarkMode) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return Container(
-          decoration: BoxDecoration(
-            color: isDarkMode
-                ? Colors.grey[800]
-                : Colors.blue[300], // Background biru/dark mode
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Filter',
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
-              ),
-              const SizedBox(height: 10),
-              const Text('Kelas', style: TextStyle(color: Colors.white)),
-              Wrap(
-                spacing: 10,
-                children: ['X', 'XI', 'XII']
-                    .map((kelas) => ChoiceChip(
-                          label: Text(kelas),
-                          labelStyle: TextStyle(
-                            color: _selectedKelas == kelas
-                                ? Colors.blue
-                                : Colors.white,
-                          ),
-                          selected: _selectedKelas == kelas,
-                          selectedColor: Colors.white, // Warna tombol aktif
-                          backgroundColor: Colors.blue, // Warna tombol default
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedKelas = selected ? kelas : 'All';
-                            });
-                          },
-                        ))
-                    .toList(),
-              ),
-              const SizedBox(height: 20),
-              const Text('Tahun Terbit', style: TextStyle(color: Colors.white)),
-              Wrap(
-                spacing: 10,
-                children: ['Terbaru', '5 Tahun Terakhir', 'Lainnya']
-                    .map((tahun) => ChoiceChip(
-                          label: Text(tahun),
-                          labelStyle: TextStyle(
-                            color: _selectedTahunTerbit == tahun
-                                ? Colors.blue
-                                : Colors.white,
-                          ),
-                          selected: _selectedTahunTerbit == tahun,
-                          selectedColor: Colors.white,
-                          backgroundColor: Colors.blue,
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedTahunTerbit = selected ? tahun : 'All';
-                            });
-                          },
-                        ))
-                    .toList(),
-              ),
-              const SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white, // Warna tombol
-                    foregroundColor: Colors.blue, // Warna teks pada tombol
-                  ),
-                  onPressed: () {
-                    // Apply filter logic here
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Apply Filter'),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   @override
@@ -243,29 +152,6 @@ class _BookCategoryPageState extends State<BookCategoryPage> {
     );
   }
 
-  Widget _buildSearchBar(bool isDarkMode) {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: 'Subject, Class, etc...',
-        fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[200],
-        filled: true,
-        prefixIcon: Icon(Icons.search,
-            color: isDarkMode ? Colors.white70 : Colors.grey),
-        suffixIcon: IconButton(
-          icon:
-              Icon(Icons.tune, color: Theme.of(context).colorScheme.secondary),
-          onPressed: () {
-            _showFilterModal(context, isDarkMode);
-          },
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
-
   Widget _buildFilterButtons(bool isDarkMode) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -310,28 +196,43 @@ class _BookCategoryPageState extends State<BookCategoryPage> {
   }
 
   Widget _buildCategoryGrid(bool isDarkMode) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 1.1,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: 4,
-      itemBuilder: (context, index) {
-        final categories = ['IPS', 'IPA', 'Bahasa', 'Seni Budaya'];
-        final images = [
-          'assets/images/category3.png',
-          'assets/images/category2.png',
-          'assets/images/category4.png',
-          'assets/images/category5.png'
-        ];
-        return _buildCategoryItem(categories[index], images[index], isDarkMode);
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection('kategori_buku').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text('Tidak ada kategori'));
+        }
+
+        final categories = snapshot.data!.docs;
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 1.1,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            final category = categories[index];
+            final label = category['nama'] ?? 'Unknown';
+            final imagePath = category['icon'];
+
+            return _buildCategoryItem(label, imagePath, isDarkMode);
+          },
+        );
       },
     );
   }
+
 
   Widget _buildCategoryItem(String label, String imagePath, bool isDarkMode) {
     return Container(
@@ -343,14 +244,35 @@ class _BookCategoryPageState extends State<BookCategoryPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.asset(
-              imagePath,
-              height: 80, // Atur tinggi gambar agar lebih kecil
-              width: double.infinity,
-              fit: BoxFit.cover, // Sesuaikan gambar dengan kontainer
-            ),
+          FutureBuilder<String>(
+            future: FirebaseStorage.instance.ref().child('kategori_buku').child(imagePath).getDownloadURL(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Container(
+                  height: 80,
+                  width: double.infinity,
+                  color: Colors.grey[300],
+                  child: const Center(child: CircularProgressIndicator()),
+                );
+              } else if (snapshot.hasError) {
+                return Container(
+                  height: 80,
+                  width: double.infinity,
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.error),
+                );
+              } else {
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    snapshot.data!,
+                    height: 80,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                );
+              }
+            },
           ),
           const Spacer(),
           Text(
@@ -382,4 +304,5 @@ class _BookCategoryPageState extends State<BookCategoryPage> {
       ),
     );
   }
+
 }
