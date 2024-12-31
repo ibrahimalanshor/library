@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'category_detail_screen.dart';
 
 class BookCategoryPage extends StatefulWidget {
   const BookCategoryPage({super.key});
@@ -226,7 +227,7 @@ class _BookCategoryPageState extends State<BookCategoryPage> {
             final label = category['nama'] ?? 'Unknown';
             final imagePath = category['icon'];
 
-            return _buildCategoryItem(label, imagePath, isDarkMode);
+            return _buildCategoryItem(context, label, imagePath, isDarkMode);
           },
         );
       },
@@ -234,75 +235,91 @@ class _BookCategoryPageState extends State<BookCategoryPage> {
   }
 
 
-  Widget _buildCategoryItem(String label, String imagePath, bool isDarkMode) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FutureBuilder<String>(
-            future: FirebaseStorage.instance.ref().child('kategori_buku').child(imagePath).getDownloadURL(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Container(
-                  height: 80,
-                  width: double.infinity,
-                  color: Colors.grey[300],
-                  child: const Center(child: CircularProgressIndicator()),
-                );
-              } else if (snapshot.hasError) {
-                return Container(
-                  height: 80,
-                  width: double.infinity,
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.error),
-                );
-              } else {
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    snapshot.data!,
+  Widget _buildCategoryItem(BuildContext context, String label, String imagePath, bool isDarkMode) {
+    return GestureDetector(
+      onTap: () {
+        // Navigasi ke halaman CategoryDetailPage
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryDetailPage(categoryName: label),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FutureBuilder<String>(
+              future: FirebaseStorage.instance
+                  .ref()
+                  .child('kategori_buku')
+                  .child(imagePath)
+                  .getDownloadURL(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Container(
                     height: 80,
                     width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                );
-              }
-            },
-          ),
-          const Spacer(),
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: isDarkMode ? Colors.white : Colors.black,
+                    color: Colors.grey[300],
+                    child: const Center(child: CircularProgressIndicator()),
+                  );
+                } else if (snapshot.hasError) {
+                  return Container(
+                    height: 80,
+                    width: double.infinity,
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.error),
+                  );
+                } else {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      snapshot.data!,
+                      height: 80,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  );
+                }
+              },
             ),
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(Icons.book_rounded,
-                  size: 16, color: isDarkMode ? Colors.grey[400] : Colors.grey),
-              const SizedBox(width: 4),
-              Text(
-                '+50 Books',
-                style: TextStyle(
-                    color: isDarkMode ? Colors.grey[400] : Colors.grey,
-                    fontSize: 12),
+            const Spacer(),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: isDarkMode ? Colors.white : Colors.black,
               ),
-              const Spacer(),
-              Icon(Icons.arrow_forward_ios,
-                  size: 16, color: Theme.of(context).colorScheme.secondary),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(Icons.book_rounded,
+                    size: 16, color: isDarkMode ? Colors.grey[400] : Colors.grey),
+                const SizedBox(width: 4),
+                Text(
+                  '+50 Books',
+                  style: TextStyle(
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                      fontSize: 12),
+                ),
+                const Spacer(),
+                Icon(Icons.arrow_forward_ios,
+                    size: 16, color: Theme.of(context).colorScheme.secondary),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
+
 
 }
