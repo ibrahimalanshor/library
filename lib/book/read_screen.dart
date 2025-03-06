@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class ReadBookPage extends StatelessWidget {
@@ -20,7 +20,8 @@ class ReadBookPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String pdfFilePath = 'buku_pdf/${title.replaceAll(' ', '_').toLowerCase()}.pdf';
+    String pdfFilePath =
+        'buku_pdf/${title.replaceAll(' ', '_').toLowerCase()}.pdf';
 
     return Scaffold(
       appBar: AppBar(
@@ -32,7 +33,9 @@ class ReadBookPage extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
+          if (snapshot.hasError ||
+              snapshot.data == null ||
+              snapshot.data!.isEmpty) {
             return Center(
               child: Text('Failed to load PDF'),
             );

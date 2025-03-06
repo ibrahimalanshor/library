@@ -1,4 +1,3 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -11,22 +10,53 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  int _selectedIndex = 2; // Starting from the search screen
-  final int _currentImageIndex = 0;
-
-  List<Map<String, dynamic>> popularBooks = [];
+  final TextEditingController _searchController = TextEditingController();
+  List<DocumentSnapshot> _searchResults = [];
+  bool isDarkMode = false; // You might want to get this from your theme
+  int _selectedIndex = 2; // 2 is the index for Search in bottom navigation
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    _fetchPopularBooks();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Function to search books in Firestore
+  Future<void> _searchBooks() async {
+    if (_searchController.text.isEmpty) {
+      setState(() {
+        _searchResults = [];
+      });
+      return;
+    }
+
+    try {
+      // Query to search books by title
+      var querySnapshot = await FirebaseFirestore.instance
+          .collection('buku')
+          .where('title', isGreaterThanOrEqualTo: _searchController.text)
+          .where('title', isLessThanOrEqualTo: _searchController.text + '\uf8ff')
+          .get();
+
+      setState(() {
+        _searchResults = querySnapshot.docs;
+      });
+    } catch (e) {
+      print('Error searching books: $e');
+      // You might want to show a snackbar or error message to the user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error searching books: $e')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -34,21 +64,20 @@ class _SearchScreenState extends State<SearchScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSearchBar(), // Menambahkan warna background biru pada header
+              _buildSearchBar(),
               const SizedBox(height: 16),
-              _buildRecommendedSection(),
-              const SizedBox(height: 24),
+              _buildSearchResults(),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(context, isDarkMode),
+      bottomNavigationBar: _buildBottomNavigationBar(context),
     );
   }
 
   Widget _buildSearchBar() {
     return Container(
-      color: Colors.blue, // Menambahkan background biru
+      color: Colors.blue,
       padding: const EdgeInsets.all(16.0),
       child: Row(
         children: [
@@ -59,8 +88,12 @@ class _SearchScreenState extends State<SearchScreen> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const TextField(
-                decoration: InputDecoration(
+              child: TextField(
+                controller: _searchController,
+                onChanged: (text) {
+                  _searchBooks();
+                },
+                decoration: const InputDecoration(
                   hintText: 'Search your need here...',
                   border: InputBorder.none,
                   icon: Icon(Icons.search, color: Colors.grey),
@@ -73,94 +106,68 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildRecommendedSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'RECOMMENDED',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue,
-            ),
-          ),
-          const Text(
-            'We recommended this book for you.',
-            style: TextStyle(color: Colors.grey),
-          ),
-          const SizedBox(height: 16),
-          _buildRecommendedSlider(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecommendedSlider() {
-    if (popularBooks.isEmpty) {
+  Widget _buildSearchResults() {
+    if (_searchResults.isEmpty) {
       return const Center(
-        child: Text(
-          'No popular books available',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Text('Tidak ada buku ditemukan'),
         ),
       );
     }
 
-    return CarouselSlider.builder(
-      itemCount: popularBooks.length,
-      options: CarouselOptions(
-        autoPlay: true,
-        enlargeCenterPage: true,
-        aspectRatio: 2.0,
-      ),
-      itemBuilder: (context, index, realIdx) {
-        final book = popularBooks[index];
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 8),
-          decoration: BoxDecoration(
-            color: Colors.blue[50],
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              Image.network(
-                book['icon'],
-                fit: BoxFit.cover,
-                height: 100,
-              ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(child: Text(
-                    truncateWithEllipsis(18, book['title']),
-                    style: const TextStyle(
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  )),
-                  Text(book['rating'].toString(),
-                      style: const TextStyle(color: Colors.grey)),
-                  const Text(
-                    'See Details',
-                    style: TextStyle(color: Colors.blue),
-                  ),
-                ],
-              ),
-            ],
-          ),
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _searchResults.length,
+      itemBuilder: (context, index) {
+        var book = _searchResults[index];
+        String title = book['title'] ?? 'Untitled';
+        String icon = book['icon'] ?? '';
+
+        return FutureBuilder<String>(
+          future: _getImageUrl(icon),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            String imageUrl = snapshot.data ?? '';
+            return ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              leading: imageUrl.isNotEmpty
+                  ? Image.network(
+                      imageUrl,
+                      width: 50,
+                      height: 50,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.image, size: 50),
+                    )
+                  : const Icon(Icons.image, size: 50),
+              title: Text(title),
+              onTap: () {
+                // Handle book selection
+              },
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildBottomNavigationBar(BuildContext context, bool isDarkMode) {
+  Future<String> _getImageUrl(String iconPath) async {
+    if (iconPath.isEmpty) return '';
+    
+    try {
+      final ref = FirebaseStorage.instance.ref().child('buku').child(iconPath);
+      return await ref.getDownloadURL();
+    } catch (e) {
+      print("Error getting image URL: $e");
+      return '';
+    }
+  }
+
+  Widget _buildBottomNavigationBar(BuildContext context) {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
       currentIndex: _selectedIndex,
@@ -170,8 +177,7 @@ class _SearchScreenState extends State<SearchScreen> {
       backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.explore), label: 'Book Category'),
+        BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Book Category'),
         BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
         BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
       ],
@@ -197,64 +203,5 @@ class _SearchScreenState extends State<SearchScreen> {
         Navigator.pushReplacementNamed(context, '/profile');
         break;
     }
-  }
-
-  Future<void> _fetchPopularBooks() async {
-    try {
-      QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection('buku')
-          .where('popular', isEqualTo: true)
-          .get();
-      List<Map<String, dynamic>> loadedBooks = [];
-
-      for (var doc in snapshot.docs) {
-        String iconFileName = doc['icon']; // Nama file icon di Firebase Storage
-        String iconUrl =
-            await _getIconUrl('buku', iconFileName); // Dapatkan URL download
-
-        loadedBooks.add({
-          'title': doc['title'],
-          'icon': iconUrl,
-          'author': doc['author'],
-          'rating': doc['rating'],
-        });
-      }
-
-      setState(() {
-        popularBooks = loadedBooks;
-
-        // _animationControllers
-        //     .clear(); // Pastikan controllers kosong sebelum diisi
-        // for (int i = 0; i < popularBooks.length; i++) {
-        //   _animationControllers[i] = AnimationController(
-        //     duration: const Duration(milliseconds: 300),
-        //     vsync: this,
-        //   );
-        // }
-      });
-    } catch (e) {
-      print('Error fetching books: $e');
-    }
-  }
-
-  Future<String> _getIconUrl(String dir, String fileName) async {
-    try {
-      // Mendapatkan URL dari Firebase Storage berdasarkan nama file
-      String downloadUrl = await FirebaseStorage.instance
-          .ref()
-          .child(dir)
-          .child(fileName)
-          .getDownloadURL();
-      return downloadUrl;
-    } catch (e) {
-      print('Error fetching icon from Firebase Storage: $e');
-      return '';
-    }
-  }
-
-  String truncateWithEllipsis(int cutoff, String myString) {
-    return (myString.length <= cutoff)
-      ? myString
-      : '${myString.substring(0, cutoff)}...';
   }
 }

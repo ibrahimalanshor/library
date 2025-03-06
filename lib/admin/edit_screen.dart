@@ -9,6 +9,7 @@ class EditBookPage extends StatefulWidget {
   final String judulAwal;
   final String penulisAwal;
   final String gambarSampulAwal;
+  final String icon;
   final bool populerAwal;
   final bool direkomendasikanAwal;
   final int ratingAwal; // Add the rating
@@ -19,6 +20,7 @@ class EditBookPage extends StatefulWidget {
     required this.judulAwal,
     required this.penulisAwal,
     required this.gambarSampulAwal,
+    required this.icon,
     required this.populerAwal,
     required this.direkomendasikanAwal,
     required this.ratingAwal, // Add the rating to constructor
@@ -28,7 +30,6 @@ class EditBookPage extends StatefulWidget {
   _HalamanEditBukuState createState() => _HalamanEditBukuState();
 }
 
-
 class _HalamanEditBukuState extends State<EditBookPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _judulController;
@@ -37,6 +38,7 @@ class _HalamanEditBukuState extends State<EditBookPage> {
   bool _populer = false;
   bool _direkomendasikan = false;
   bool _sedangMengunggah = false;
+  bool gambarUpdated = false;
   int _rating = 3; // Default rating adalah 3
 
   @override
@@ -56,12 +58,16 @@ class _HalamanEditBukuState extends State<EditBookPage> {
       setState(() {
         _gambarTerpilih = gambar;
       });
+      setState(() {
+        gambarUpdated = true;
+      });
     }
   }
 
   Future<String?> _unggahGambar(XFile gambar) async {
     final storageRef = FirebaseStorage.instance.ref();
-    final fileRef = storageRef.child('buku/${DateTime.now().millisecondsSinceEpoch}.jpg');
+    final fileRef =
+        storageRef.child('buku/${DateTime.now().millisecondsSinceEpoch}.jpg');
     await fileRef.putFile(File(gambar.path));
     return await fileRef.getDownloadURL();
   }
@@ -73,12 +79,15 @@ class _HalamanEditBukuState extends State<EditBookPage> {
       });
 
       try {
-        String? urlSampul = widget.gambarSampulAwal;
+        String? urlSampul = widget.icon;
         if (_gambarTerpilih != null) {
           urlSampul = await _unggahGambar(_gambarTerpilih!);
         }
 
-        await FirebaseFirestore.instance.collection('buku').doc(widget.idBuku).update({
+        await FirebaseFirestore.instance
+            .collection('buku')
+            .doc(widget.idBuku)
+            .update({
           'title': _judulController.text,
           'author': _penulisController.text,
           'icon': urlSampul,
@@ -93,7 +102,8 @@ class _HalamanEditBukuState extends State<EditBookPage> {
         Navigator.pop(context);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Terjadi kesalahan saat memperbarui buku: $e')),
+          SnackBar(
+              content: Text('Terjadi kesalahan saat memperbarui buku: $e')),
         );
       } finally {
         setState(() {

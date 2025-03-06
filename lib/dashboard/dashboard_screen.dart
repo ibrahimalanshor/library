@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:bukuhub/book/read_screen.dart';
 import 'package:bukuhub/book/booking_screen.dart';
+import 'package:bukuhub/book/read_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -129,7 +129,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       List<Map<String, String>> loadedCategories = [];
 
       for (var doc in snapshot.docs) {
-        String? iconFileName = doc['icon']; // Nama file icon di Firebase Storage
+        String? iconFileName =
+            doc['icon']; // Nama file icon di Firebase Storage
         String iconUrl = await _getIconUrl(
             'kategori_buku', iconFileName); // Dapatkan URL download
 
@@ -162,15 +163,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       List<Map<String, dynamic>> loadedBooks = [];
 
       for (var doc in snapshot.docs) {
-        String? iconFileName = doc['icon']; // Nama file icon di Firebase Storage
+        String? iconFileName =
+            doc['icon']; // Nama file icon di Firebase Storage
         String iconUrl =
             await _getIconUrl('buku', iconFileName); // Dapatkan URL download
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>; // Konversi ke Map
 
         loadedBooks.add({
           'title': doc['title'],
           'icon': iconUrl,
           'author': doc['author'],
           'rating': doc['rating'],
+          'bookable': data.containsKey('bookable') ? data['bookable'] : true
         });
       }
 
@@ -203,12 +207,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         String iconFileName = doc['icon']; // Nama file icon di Firebase Storage
         String iconUrl =
             await _getIconUrl('buku', iconFileName); // Dapatkan URL download
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>; // Konversi ke Map
 
         loadedBooks.add({
           'title': doc['title'],
           'icon': iconUrl,
           'author': doc['author'],
           'rating': doc['rating'],
+          'bookable': data.containsKey('bookable') ? data['bookable'] : true
         });
       }
 
@@ -259,8 +265,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   void _moveRecommendedBooks(Timer timer) {
@@ -269,8 +274,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   @override
@@ -281,22 +285,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       resizeToAvoidBottomInset: false,
       body: SafeArea(child: LayoutBuilder(builder: (context, constraint) {
         return SingleChildScrollView(
-          child: ConstrainedBox(constraints: BoxConstraints(minHeight: constraint.minHeight), child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildAppBar(),
-              const SizedBox(height: 10),
-              _buildCarousel(),
-              _buildSectionHeader('Book Category'),
-              const SizedBox(height: 10),
-              _buildCategoryList(),
-              _buildSectionHeader('Popular Book'),
-              _buildPopularBooksList(),
-              _buildSectionHeader('Recommended'),
-              _buildRecommendedBooksList(),
-            ],
-          ))
-        );
+            child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraint.minHeight),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildAppBar(),
+                    const SizedBox(height: 10),
+                    _buildCarousel(),
+                    _buildSectionHeader('Book Category'),
+                    const SizedBox(height: 10),
+                    _buildCategoryList(),
+                    _buildSectionHeader('Popular Book'),
+                    _buildPopularBooksList(),
+                    _buildSectionHeader('Recommended'),
+                    _buildRecommendedBooksList(),
+                  ],
+                )));
       })),
       bottomNavigationBar: _buildBottomNavigationBar(context, isDarkMode),
     );
@@ -325,7 +330,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
               SizedBox(width: 5),
               Text(
-                'Steven Morison',
+                'Test',
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -484,6 +489,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             book['author'] as String,
             book['rating'] as int,
             book['icon'] as String,
+            book['bookable'] as bool
           );
         },
       ),
@@ -553,6 +559,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             book['author'] as String,
             book['rating'] as int,
             book['icon'] as String,
+            book['bookable'] as bool
           );
         },
       ),
@@ -560,41 +567,40 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildRecommendedItem(
-      String title, String author, int rating, String imagePath) {
+      String title, String author, int rating, String imagePath, bool bookable) {
     return GestureDetector(
-      onTap: () {
-        _showBottomSheet(context, title, author, rating);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: SingleChildScrollView(child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                imagePath,
-                fit: BoxFit.cover,
-                height: 180,
-                width: 120,
-              ),
-            ),
-            const SizedBox(height: 5),
-            SizedBox(
-              width: 120,
-              child: Text(
-                title,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Text(author, maxLines: 1, overflow: TextOverflow.ellipsis),
-            Text('⭐ ${rating.toString()}'),
-          ],
-        ))
-      )
-    );
+        onTap: () {
+          _showBottomSheet(context, title, author, rating, bookable);
+        },
+        child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: SingleChildScrollView(
+                child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    imagePath,
+                    fit: BoxFit.cover,
+                    height: 180,
+                    width: 120,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                SizedBox(
+                  width: 120,
+                  child: Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Text(author, maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text('⭐ ${rating.toString()}'),
+              ],
+            ))));
   }
 
   Widget _buildSectionHeader(String title) {
@@ -628,7 +634,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  void _showBottomSheet(BuildContext context, String title, String author, int rating) {
+  void _showBottomSheet(
+    BuildContext context, String title, String author, int rating, bool bookable) {
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -651,52 +658,53 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 title: Text('Baca'),
                 onTap: () {
                   Navigator.pop(context); // Tutup Bottom Sheet
-                  // Tambahkan logika untuk aksi Baca di sini
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ReadBookPage(title: title, author: author),
+                      builder: (context) =>
+                          ReadBookPage(title: title, author: author),
                     ),
                   );
                 },
               ),
-              ListTile(
-                leading: Icon(Icons.calendar_today),
-                title: Text('Booking'),
-                onTap: () async {
-                  final userId = FirebaseAuth.instance.currentUser?.uid; // Gunakan UID dari pengguna saat ini
-                  final bookingRef = FirebaseFirestore.instance.collection('booking');
-                  final querySnapshot = await bookingRef
-                      .where('userId', isEqualTo: userId)
-                      .where('title', isEqualTo: title)
-                      .get();
+              if (bookable) // Hanya tampil jika bookable = true
+                ListTile(
+                  leading: Icon(Icons.calendar_today),
+                  title: Text('Booking'),
+                  onTap: () async {
+                    final userId = FirebaseAuth.instance.currentUser?.uid;
+                    final bookingRef =
+                        FirebaseFirestore.instance.collection('booking');
+                    final querySnapshot = await bookingRef
+                        .where('userId', isEqualTo: userId)
+                        .where('title', isEqualTo: title)
+                        .get();
 
-                  // Jika belum ada, tambahkan data baru
-                  if (querySnapshot.docs.isEmpty) {
-                    // Insert data ke koleksi bookings
-                    await bookingRef.add({
-                      'title': title,
-                      'icon': '${title}.jpg',
-                      'userId': userId,
-                    });
-                  }
+                    if (querySnapshot.docs.isEmpty) {
+                      await bookingRef.add({
+                        'title': title,
+                        'icon': '${title}.jpg',
+                        'userId': userId,
+                      });
+                    }
 
-                  Navigator.pop(context);
+                    Navigator.pop(context);
 
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BookingPage(),
-                    ),
-                  );
-                },
-              ),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BookingPage(),
+                      ),
+                    );
+                  },
+                ),
             ],
           ),
         );
       },
     );
   }
+
 
   void _onItemTapped(int index) {
     setState(() {
