@@ -78,6 +78,7 @@ class HomePage extends StatelessWidget {
               final author = book['author'] ?? 'Penulis Tidak Diketahui';
               final populer = book['popular'] ?? false;
               final direkomendasikan = book['recomended'] ?? false;
+              final bookable = book['bookable'] ?? false;
               final rating = book['rating'] ?? 0.0;
               final icon = book['icon'];
 
@@ -133,6 +134,11 @@ class HomePage extends StatelessWidget {
                                                 .toLowerCase() ==
                                             'true', // Kirim status direkomendasikan
                                     ratingAwal: rating, // Kirim rating buku
+                                    bookableAwal: (bookable is bool) 
+                                      ? bookable 
+                                      : (bookable is String && bookable.toLowerCase() != 'false') 
+                                          ? true 
+                                          : true, // Default ke true jika null atau bukan "true"
                                   ),
                                 ),
                               );
