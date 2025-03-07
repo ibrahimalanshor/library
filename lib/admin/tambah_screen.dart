@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io'; // Tambahkan ini untuk mendefinisikan File
+import 'dart:io';
 
 class AddBookPage extends StatefulWidget {
   const AddBookPage({super.key});
@@ -18,6 +18,7 @@ class _AddBookPageState extends State<AddBookPage> {
   final _ratingController = TextEditingController();
   bool _isPopular = false;
   bool _isRecommended = false;
+  bool _isBookable = false;
   XFile? _selectedImage;
   bool _isUploading = false;
 
@@ -97,6 +98,19 @@ class _AddBookPageState extends State<AddBookPage> {
                   const Text('Direkomendasikan')
                 ],
               ),
+              Row(
+                children: [
+                  Checkbox(
+                    value: _isBookable,
+                    onChanged: (value) {
+                      setState(() {
+                        _isBookable = value ?? false;
+                      });
+                    },
+                  ),
+                  const Text('Dapat Dibooking')
+                ],
+              ),
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: _pickImage,
@@ -161,7 +175,6 @@ class _AddBookPageState extends State<AddBookPage> {
           coverImageUrl = await _uploadImage(_selectedImage!);
         }
 
-        // Simpan data ke Firestore
         await FirebaseFirestore.instance.collection('buku').add({
           'title': title,
           'author': author,
@@ -169,6 +182,7 @@ class _AddBookPageState extends State<AddBookPage> {
           'rating': rating,
           'popular': _isPopular,
           'recomended': _isRecommended,
+          'bookable': _isBookable,
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
