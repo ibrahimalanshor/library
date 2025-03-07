@@ -12,6 +12,7 @@ class EditBookPage extends StatefulWidget {
   final String icon;
   final bool populerAwal;
   final bool direkomendasikanAwal;
+  final bool bookableAwal; // Tambahkan bookable
   final int ratingAwal; // Add the rating
 
   const EditBookPage({
@@ -23,6 +24,7 @@ class EditBookPage extends StatefulWidget {
     required this.icon,
     required this.populerAwal,
     required this.direkomendasikanAwal,
+    required this.bookableAwal, // Tambahkan bookable
     required this.ratingAwal, // Add the rating to constructor
   });
 
@@ -37,6 +39,7 @@ class _HalamanEditBukuState extends State<EditBookPage> {
   XFile? _gambarTerpilih;
   bool _populer = false;
   bool _direkomendasikan = false;
+  bool _bookable = true; // Default bookable true
   bool _sedangMengunggah = false;
   bool gambarUpdated = false;
   int _rating = 3; // Default rating adalah 3
@@ -48,6 +51,7 @@ class _HalamanEditBukuState extends State<EditBookPage> {
     _penulisController = TextEditingController(text: widget.penulisAwal);
     _populer = widget.populerAwal;
     _direkomendasikan = widget.direkomendasikanAwal;
+    _bookable = widget.bookableAwal; // Set nilai awal bookable
     _rating = widget.ratingAwal; // Set the initial rating
   }
 
@@ -57,8 +61,6 @@ class _HalamanEditBukuState extends State<EditBookPage> {
     if (gambar != null) {
       setState(() {
         _gambarTerpilih = gambar;
-      });
-      setState(() {
         gambarUpdated = true;
       });
     }
@@ -93,6 +95,7 @@ class _HalamanEditBukuState extends State<EditBookPage> {
           'icon': urlSampul,
           'popular': _populer,
           'recomended': _direkomendasikan,
+          'bookable': _bookable, // Simpan bookable
           'rating': _rating, // Menambahkan rating
         });
 
@@ -172,6 +175,19 @@ class _HalamanEditBukuState extends State<EditBookPage> {
                       },
                     ),
                     const Text('Direkomendasikan'),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _bookable,
+                      onChanged: (value) {
+                        setState(() {
+                          _bookable = value ?? true;
+                        });
+                      },
+                    ),
+                    const Text('Bookable'),
                   ],
                 ),
                 const SizedBox(height: 8),
