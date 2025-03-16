@@ -1,212 +1,132 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/gestures.dart'; // Import for TapGestureRecognizer
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  bool _isLoading = false; // Loading state
-  String email = "";
-  String password = "";
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  Future<void> _login() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Login ke Firebase
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      User? user = userCredential.user;
+      if (user != null) {
+        // Ambil ID token dengan klaim terbaru
+        final idTokenResult = await user.getIdTokenResult(true);
+        final isAdmin = idTokenResult.claims?['admin'] ?? false; // Cek klaim admin
+
+        // Redirect ke halaman yang sesuai
+        if (isAdmin) {
+          Navigator.of(context).pushReplacementNamed('/admin');
+        } else {
+          Navigator.of(context).pushReplacementNamed('/dashboard');
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      // Tangani error login
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Login failed')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blue,
-      body: SafeArea(
+      body: Center(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.orange),
-                  onPressed: () {
-                    Navigator.of(context)
-                        .pushNamed('/'); // Navigate back to the home page
-                  },
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Hi Welcome\nBack!',
-                  style: TextStyle(
-                    fontFamily: 'Anton',
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                RichText(
-                  text: TextSpan(
-                    style: const TextStyle(fontSize: 16),
-                    children: [
-                      const TextSpan(
-                        text: "Don't have an account? ",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      TextSpan(
-                        text: "Sign up",
-                        style: TextStyle(color: Colors.orange[300]),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            Navigator.of(context).pushNamed(
-                                '/signup'); // Navigate to signup page
-                          },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Center(
-                  child: Image.asset(
-                    'assets/images/login.png', // Ensure this image is in your assets
-                    height: 250,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                const SizedBox(height: 40),
-                _buildTextField('Full Name or Email', onChanged: (text) {
-                  email = text;
-                }),
-                const SizedBox(height: 20),
-                _buildTextField('Password', isPassword: true,
-                    onChanged: (text) {
-                  password = text;
-                }),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: () {
-                      // Handle forgot password
-                    },
-                    child: const Text(
-                      'Forgot password?',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading
-                        ? null
-                        : _handleLogin, // Disable button while loading
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[800],
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.orange), // Loading spinner color
-                          )
-                        : const Text(
-                            'Sign in',
-                            style: TextStyle(
-                              color: Colors.orange,
-                              fontSize: 18,
-                            ),
-                          ),
-                  ),
-                ),
-              ],
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset('assets/images/login.png', width: 100, height: 100),
+              const SizedBox(height: 20),
+              const Text(
+                'BukuHub',
+                style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              const Text('LIBRARY APP', style: TextStyle(fontSize: 18, color: Colors.white70)),
+              const SizedBox(height: 40),
+              TextField(
+                controller: _emailController,
+                decoration: _inputDecoration(Icons.email, 'Email or Phone'),
+                style: const TextStyle(color: Colors.white),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: _inputDecoration(Icons.lock, 'Password'),
+                style: const TextStyle(color: Colors.white),
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: const Text('Forgot Password?', style: TextStyle(fontSize: 14, color: Colors.white)),
+              ),
+              const SizedBox(height: 20),
+              _buildButton('Login', _login),
+              const SizedBox(height: 16),
+              const Text('Or', style: TextStyle(fontSize: 16, color: Colors.white), textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              _buildButton('Create an Account', () {}),
+            ],
           ),
         ),
       ),
     );
   }
 
-  void _handleLogin() async {
-    setState(() {
-      _isLoading = true; // Start loading
-    });
-
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      User? user = FirebaseAuth.instance.currentUser;
-
-      if (user != null) {
-        // Refresh token dan ambil custom claims
-        final idTokenResult = await user.getIdTokenResult(true);
-        final isAdmin = idTokenResult.claims?['admin'] ?? false; // Ambil klaim 'admin'
-
-        // Redirect berdasarkan klaim
-        if (isAdmin) {
-          Navigator.of(context).pushNamed('/admin');
-        } else {
-          Navigator.of(context).pushNamed('/dashboard');
-        }
-      }
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        showErrorDialog(context, 'No user found for that email.');
-      } else if (e.code == 'wrong-password') {
-        showErrorDialog(context, 'Wrong password provided for that user.');
-      }
-    } catch (e) {
-      print(e);
-    }
-
-    setState(() {
-      _isLoading = false; // End loading
-    });
-  }
-
-  Widget _buildTextField(String hintText,
-      {bool isPassword = false, onChanged}) {
-    return TextField(
-      obscureText: isPassword,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TextStyle(color: Colors.blue[900]),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      ),
-      onChanged: onChanged,
+  InputDecoration _inputDecoration(IconData icon, String hintText) {
+    return InputDecoration(
+      filled: true,
+      fillColor: Colors.white.withOpacity(0.5),
+      hintText: hintText,
+      hintStyle: const TextStyle(color: Colors.white),
+      prefixIcon: Icon(icon, color: Colors.white),
+      border: InputBorder.none,
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
     );
   }
 
-  void showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Error'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Menutup dialog
-              },
-            ),
-          ],
-        );
-      },
+  Widget _buildButton(String text, VoidCallback onPressed) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        child: _isLoading
+            ? const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue))
+            : Text(text, style: const TextStyle(fontSize: 18, color: Colors.blue, fontWeight: FontWeight.bold)),
+      ),
     );
   }
 }
-
