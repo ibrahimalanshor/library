@@ -91,7 +91,9 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 16),
               const Text('Or', style: TextStyle(fontSize: 16, color: Colors.white), textAlign: TextAlign.center),
               const SizedBox(height: 16),
-              _buildButton('Create an Account', () {}),
+              _buildButton('Create an Account', () {
+                Navigator.of(context).pushNamed('/signup'); // ⬅️ Navigasi ke RegisterPage
+              }),
             ],
           ),
         ),
